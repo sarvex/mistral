@@ -13,10 +13,10 @@ def test_can_move_dataset_cache():
             yield BatchEncoding({"input_ids": [[i] * (i + 1)]})
 
     with tempfile.TemporaryDirectory() as tempdir:
-        orig_cache = tempdir + "/orig"
+        orig_cache = f"{tempdir}/orig"
         orig_ds = IndexedDataset.build_or_load(token_iterator(), orig_cache, seq_len=5, stride=1)
 
-        new_cache = tempdir + "/new"
+        new_cache = f"{tempdir}/new"
         # copy the cache
         shutil.copytree(orig_cache, new_cache)
 

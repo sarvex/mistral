@@ -47,7 +47,7 @@ def wikitext_detokenize(example: Dict[str, str]) -> Dict[str, str]:
     text = text.replace("= = = =", "====")
     text = text.replace("= = =", "===")
     text = text.replace("= =", "==")
-    text = text.replace(" " + chr(176) + " ", chr(176))
+    text = text.replace(f" {chr(176)} ", chr(176))
     text = text.replace(" \n", "\n")
     text = text.replace("\n ", "\n")
     text = text.replace(" N ", " 1 ")

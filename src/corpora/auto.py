@@ -47,10 +47,13 @@ def build_indexed_dataset(
     if dataset_dir is not None:
         file_names = os.listdir(dataset_dir)
         file_type = os.path.splitext(file_names[0])[1][1:]
-        dataset_files = {}
-        dataset_files["train"] = [
-            f"{dataset_dir}/{fn}" for fn in file_names if "train" in fn and fn.endswith(file_type)
-        ]
+        dataset_files = {
+            "train": [
+                f"{dataset_dir}/{fn}"
+                for fn in file_names
+                if "train" in fn and fn.endswith(file_type)
+            ]
+        }
         dataset_files["validation"] = [
             f"{dataset_dir}/{fn}" for fn in file_names if "validation" in fn and fn.endswith(file_type)
         ]
@@ -157,7 +160,9 @@ def get_auto_dataset(
     # Finally, actually run chunking (collapse multiple sequences into a giant document to read `seq_len` chunks from)
     def group(examples: Dict[str, Iterable[List[int]]]) -> Dict[str, List[List[int]]]:
         # Concatenate all the Texts
-        concatenated: Dict[str, List[int]] = {k: sum(examples[k], []) for k in examples.keys()}
+        concatenated: Dict[str, List[int]] = {
+            k: sum(examples[k], []) for k in examples
+        }
         total_length = len(concatenated[list(examples.keys())[0]])
 
         # Drop the "very last" bit of the dataset that doesn't fit into block size...
@@ -216,16 +221,14 @@ def auto_detokenize(
         # Create Parent Path of Cache Files
         (preprocess_path / dataset_id / "preprocessing" / "detokenization").mkdir(parents=True, exist_ok=True)
 
-        detokenized_dataset = dataset.map(
+        return dataset.map(
             DATASET_TOKENIZATION_REGISTRY[dataset_id],
             num_proc=preprocessing_num_proc,
             cache_file_names=post_detokenization_cache_files,
             load_from_cache_file=True,
         )
     else:
-        detokenized_dataset = dataset
-
-    return detokenized_dataset
+        return dataset
 
 
 def get_lambada(
@@ -258,12 +261,18 @@ def get_lambada(
         last_token = text.split()[-1]
         start_idx = text.rfind(last_token)
 
-        beginning_tokens, last_token = tokenizer.encode(text[:start_idx].strip()), tokenizer.encode(" " + last_token)
+        beginning_tokens, last_token = tokenizer.encode(
+            text[:start_idx].strip()
+        ), tokenizer.encode(f" {last_token}")
         num_pad = seq_len - len(beginning_tokens) - len(last_token)
         assert num_pad >= 0, "LAMBADA example is longer than sequence length, will result in error."
 
         input_ids = beginning_tokens + last_token + [tokenizer.eos_token_id for _ in range(num_pad)]
-        labels = [-100 for _ in beginning_tokens] + [tok for tok in last_token] + [-100 for _ in range(num_pad)]
+        labels = (
+            [-100 for _ in beginning_tokens]
+            + list(last_token)
+            + [-100 for _ in range(num_pad)]
+        )
         attention_mask = [1 for _ in range(len(beginning_tokens) + len(last_token))] + [0 for _ in range(num_pad)]
 
         return {"input_ids": input_ids, "labels": labels, "attention_mask": attention_mask}

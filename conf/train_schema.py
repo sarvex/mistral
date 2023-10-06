@@ -112,8 +112,7 @@ def get_schema() -> Dict[str, Any]:
         "run_dir": merge(tstring, default("/u/scr/nlp/mercury/mistral/runs")),
     }
 
-    # Combined Schema for `train.py`
-    mistral_schema = {
+    return {
         "dataset": stdict(data_schema),
         "model": stdict(model_schema),
         "training_arguments": stdict(trainer_schema),
@@ -122,7 +121,11 @@ def get_schema() -> Dict[str, Any]:
         "effective_bsz": merge(tinteger, default(512)),
         "resume": merge(tboolean, default(False)),
         "resume_checkpoint": merge(tstring, nullable, default(None)),
-        "checkpoint_frequency": merge(merge(tlist, schema(merge(tlist, schema(tinteger)))), nullable, default(None)),
+        "checkpoint_frequency": merge(
+            merge(tlist, schema(merge(tlist, schema(tinteger)))),
+            nullable,
+            default(None),
+        ),
         "log_level": merge(tinteger, default(20)),
         "run_id": merge(tstring, nullable, default(None)),
         "wandb_api_key_path": merge(tstring, nullable, default(None)),
@@ -141,5 +144,3 @@ def get_schema() -> Dict[str, Any]:
         "num_nodes": merge(tinteger, default(-1)),
         "world_size": merge(tinteger, default(-1)),
     }
-
-    return mistral_schema

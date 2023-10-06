@@ -34,9 +34,9 @@ def rewrite_logs(d: Dict[str, float]) -> Dict[str, float]:
     eval_prefix_len = len(eval_prefix)
     for k, v in d.items():
         if k.startswith(eval_prefix):
-            new_d["eval/" + k[eval_prefix_len:]] = v
+            new_d[f"eval/{k[eval_prefix_len:]}"] = v
         else:
-            new_d["train/" + k] = v
+            new_d[f"train/{k}"] = v
     return new_d
 
 
@@ -143,7 +143,7 @@ class CustomWandbCallback(WandbCallback):
                 init_args["group"] = self.group
 
             # Add Additional kwargs into init_args Dictionary
-            init_args = {**init_args, **kwargs}
+            init_args = init_args | kwargs
             if self._wandb.run is None:
                 self._wandb.init(
                     project=os.getenv("WANDB_PROJECT", "huggingface"),

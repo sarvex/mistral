@@ -145,11 +145,10 @@ class IndexedDataset(IterDataPipe[BatchEncoding]):
 
     def _load_ledger(self):
         ledger_path = os.path.join(self.cache_dir, LEDGER_FILE)
-        if os.path.exists(ledger_path):
-            with open(ledger_path, "r") as f:
-                return json.load(f)
-        else:
+        if not os.path.exists(ledger_path):
             raise FileNotFoundError(f"{self.cache_dir} is not a complete cache")
+        with open(ledger_path, "r") as f:
+            return json.load(f)
 
 
 def read_cache_file(file, flatten: bool = False) -> Iterator[BatchEncoding]:

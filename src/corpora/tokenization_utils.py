@@ -91,7 +91,7 @@ def _mask_overlap(labels, target_len, stride, sentinel=-100):
             if i < len(labels):
                 labels[i] = sentinel
     else:
-        labels[0 : target_len - stride] = sentinel
+        labels[:target_len - stride] = sentinel
 
     return labels
 
@@ -133,7 +133,7 @@ class SeededShufflerIterDataPipe(IterDataPipe[T_co]):
     def __len__(self) -> int:
         if isinstance(self.datapipe, Sized):
             return len(self.datapipe)
-        raise TypeError("{} instance doesn't have valid length".format(type(self).__name__))
+        raise TypeError(f"{type(self).__name__} instance doesn't have valid length")
 
 
 class PassthroughTokenizer(PreTrainedTokenizer):
@@ -149,8 +149,7 @@ class PassthroughTokenizer(PreTrainedTokenizer):
         return ()
 
     def _tokenize(self, text, **kwargs):
-        tokens = [int(token) for token in text.strip().split(" ")]
-        return tokens
+        return [int(token) for token in text.strip().split(" ")]
 
     def _convert_token_to_id(self, token: str) -> int:
         return int(token)
