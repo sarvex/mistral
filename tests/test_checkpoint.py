@@ -54,7 +54,11 @@ trainer_after_restart = None
 def setup_module() -> None:
     global trainer_after_training, trainer_after_restart
     trainer_after_training = run_train_process(cl_args_dict=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id=RUN_ID)
-    trainer_after_restart = run_train_process(cl_args_dict=RESTART_ARGS, runs_dir=RUNS_DIR, run_id=RUN_ID + "-restart")
+    trainer_after_restart = run_train_process(
+        cl_args_dict=RESTART_ARGS,
+        runs_dir=RUNS_DIR,
+        run_id=f"{RUN_ID}-restart",
+    )
 
 
 def test_checkpoint_weights() -> None:

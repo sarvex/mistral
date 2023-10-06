@@ -153,28 +153,27 @@ class OnlineBenchmarkTrainer(Trainer):
 
     def get_train_dataloader(self) -> DataLoader:
         """ensures we're shuffling if we're using a new-style (iterable) dataset"""
-        if isinstance(self.train_dataset, IterDataPipe):
-            train_dataset = DataLoader(
-                self.train_dataset,
-                shuffle=True,
-                batch_size=self.args.per_device_train_batch_size,
-                collate_fn=self.data_collator,
-                num_workers=self.args.dataloader_num_workers,
-                pin_memory=self.args.dataloader_pin_memory,
+        if not isinstance(self.train_dataset, IterDataPipe):
+            return super().get_train_dataloader()
+        train_dataset = DataLoader(
+            self.train_dataset,
+            shuffle=True,
+            batch_size=self.args.per_device_train_batch_size,
+            collate_fn=self.data_collator,
+            num_workers=self.args.dataloader_num_workers,
+            pin_memory=self.args.dataloader_pin_memory,
+        )
+
+        if self.args.world_size > 1:
+            train_dataset = IterableDatasetShard(
+                train_dataset,
+                batch_size=self.args.train_batch_size,
+                drop_last=self.args.dataloader_drop_last,
+                num_processes=self.args.world_size,
+                process_index=self.args.process_index,
             )
 
-            if self.args.world_size > 1:
-                train_dataset = IterableDatasetShard(
-                    train_dataset,
-                    batch_size=self.args.train_batch_size,
-                    drop_last=self.args.dataloader_drop_last,
-                    num_processes=self.args.world_size,
-                    process_index=self.args.process_index,
-                )
-
-            return train_dataset
-        else:
-            return super().get_train_dataloader()
+        return train_dataset
 
 
 @dataclass
@@ -184,11 +183,7 @@ class LMDataCollator:
     def __call__(self, examples: List[BatchEncoding]):
         batch = BatchEncoding(data={k: torch.tensor([v[k] for v in examples]) for k in examples[0].keys()})
 
-        if "labels" in batch:
-            labels = batch["labels"]
-        else:
-            labels = batch["input_ids"]
-
+        labels = batch["labels"] if "labels" in batch else batch["input_ids"]
         if self.tokenizer.pad_token_id is not None:
             labels = labels.clone()
             labels[labels == self.tokenizer.pad_token_id] = -100

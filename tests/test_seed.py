@@ -47,10 +47,7 @@ def is_randomized(key):
     weights and biases, and bias terms in general.
     """
     # regexes for components that are not randomized
-    if key.endswith("bias") or "ln" in key:
-        return False
-    else:
-        return True
+    return not key.endswith("bias") and "ln" not in key
 
 
 def test_weight_initializations() -> None:
